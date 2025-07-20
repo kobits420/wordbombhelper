@@ -2,7 +2,7 @@ import urllib.request
 import json
 import os
 import pickle
-from typing import List, Set, Dict
+from typing import List, Set, Dict, Optional
 from collections import defaultdict
 import time
 
@@ -121,19 +121,23 @@ class EnhancedWordBombHelper:
         print(f"Built index with {len(index)} sequences")
         return dict(index)
     
-    def find_words_with_sequence(self, sequence: str) -> List[str]:
+    def find_words_with_sequence(self, sequence: str, length_filter: Optional[int] = None) -> List[str]:
         """
         Find all words that contain the given character sequence in order.
         Uses optimized indexing for O(1) lookup.
         
         Args:
             sequence: A string of 2-3 characters to search for
+            length_filter: Optional integer to filter words by exact length
             
         Returns:
-            List of words containing the sequence
+            List of words containing the sequence, optionally filtered by length
         """
         if not sequence or len(sequence) < 2 or len(sequence) > 3:
             raise ValueError("Sequence must be 2-3 characters long")
+        
+        if length_filter is not None and (length_filter < 1 or length_filter > 50):
+            raise ValueError("Length filter must be between 1 and 50")
         
         sequence = sequence.lower()
         
@@ -147,12 +151,45 @@ class EnhancedWordBombHelper:
                 if sequence in word.lower():
                     matching_words.append(word)
         
+        # Apply length filter if specified
+        if length_filter is not None:
+            matching_words = [word for word in matching_words if len(word) == length_filter]
+        
         # Ensure no duplicates in results
         matching_words = list(set(matching_words))
         
         # Sort by length (longest first) and then alphabetically
         matching_words.sort(key=lambda x: (-len(x), x.lower()))
         return matching_words
+    
+    def parse_input(self, user_input: str) -> tuple[str, Optional[int]]:
+        """
+        Parse user input to extract sequence and optional length filter.
+        
+        Args:
+            user_input: String like "to" or "to 3" or "the 5"
+            
+        Returns:
+            Tuple of (sequence, length_filter)
+        """
+        parts = user_input.strip().split()
+        
+        if not parts:
+            raise ValueError("Please enter a sequence")
+        
+        sequence = parts[0].lower()
+        
+        # Check for length filter
+        length_filter = None
+        if len(parts) > 1:
+            try:
+                length_filter = int(parts[1])
+                if length_filter < 1 or length_filter > 50:
+                    raise ValueError("Length must be between 1 and 50")
+            except ValueError:
+                raise ValueError("Length filter must be a number between 1 and 50")
+        
+        return sequence, length_filter
     
     def get_stats(self) -> Dict:
         """Get statistics about the word database."""
@@ -196,6 +233,7 @@ def main():
     print(f"  Using cache: {stats['cache_file_exists']}")
     
     print("\nEnter a 2-3 character sequence to find words containing it.")
+    print("Add a number to filter by length (e.g., 'to 3' for 3-letter words).")
     print("Type 'quit' to exit.")
     print()
     
@@ -210,22 +248,35 @@ def main():
                 print("Please enter a sequence.")
                 continue
             
-            if len(user_input) < 2 or len(user_input) > 3:
+            # Parse input for sequence and length filter
+            try:
+                sequence, length_filter = helper.parse_input(user_input)
+            except ValueError as e:
+                print(f"Error: {e}")
+                continue
+            
+            if len(sequence) < 2 or len(sequence) > 3:
                 print("Please enter a sequence of 2-3 characters.")
                 continue
             
             # Time the search
             start_time = time.time()
-            words = helper.find_words_with_sequence(user_input)
+            words = helper.find_words_with_sequence(sequence, length_filter)
             search_time = time.time() - start_time
             
+            # Build display message
+            if length_filter:
+                display_msg = f"Words containing '{sequence}' with length {length_filter}"
+            else:
+                display_msg = f"Words containing '{sequence}'"
+            
             if words:
-                print(f"\nWords containing '{user_input}' (found in {search_time:.3f}s):")
+                print(f"\n{display_msg} (found in {search_time:.3f}s):")
                 for word in words:
                     print(f"  {word}")
                 print(f"\nFound {len(words)} word(s)")
             else:
-                print(f"\nNo words found containing '{user_input}'")
+                print(f"\nNo words found for {display_msg}")
             
             print()
             

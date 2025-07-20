@@ -6,9 +6,12 @@ A Python tool that helps with Word Bomb by finding words containing specific cha
 
 Enter 2-3 characters and get all words containing that sequence in order. For example, "to" finds: into, together, toward, today, etc.
 
+**New: Add a number to filter by length!** Try "to 3" for only 3-letter words.
+
 ## Features
 
 - **300,000+ words** from multiple sources (vs 10,000 in original)
+- **Length filtering** - specify exact word length (e.g., "to 3")
 - **Lightning fast** O(1) search with indexing
 - **Smart caching** - instant loading after first run
 - **Zero duplicates** - automatic cleanup
@@ -21,6 +24,14 @@ Enter 2-3 characters and get all words containing that sequence in order. For ex
 python wordbomb_enhanced.py
 ```
 
+### Length Filtering Examples
+```
+to        # All words containing "to"
+to 3      # Only 3-letter words containing "to"
+the 5     # Only 5-letter words containing "the"
+an 7      # Only 7-letter words containing "an"
+```
+
 ### Original Version
 ```bash
 python wordbomb_helper.py
@@ -31,7 +42,7 @@ python wordbomb_helper.py
 from wordbomb_enhanced import EnhancedWordBombHelper
 
 helper = EnhancedWordBombHelper()
-words = helper.find_words_with_sequence("to")
+words = helper.find_words_with_sequence("to", 3)  # 3-letter words only
 print(words)
 ```
 
@@ -47,6 +58,7 @@ print(words)
 
 - `wordbomb_enhanced.py` - **Enhanced version** (Recommended)
 - `wordbomb_helper.py` - Original version
+- `demo_length_filter.py` - Length filtering examples
 - `demo.py` - See it in action
 - `test_duplicates.py` - Verify no duplicates
 
