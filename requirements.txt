@@ -1,0 +1,6 @@
+# Word Bomb Helper Requirements
+# Python 3.6+ is required for f-strings and type hints
+
+# No external dependencies required - uses only Python standard library
+# urllib.request for downloading the word list
+# typing for type hints 
